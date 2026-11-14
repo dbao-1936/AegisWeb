@@ -9,9 +9,31 @@ venv/
 .idea/
 .vscode/
 
-# Environment
+# Environment / secrets
 .env
+.env.*
+!.env.example
 
 # Database
 data/
 *.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Test and local output
+test_output.txt
+*.log
+*.tmp
+tmp/
+scratch/
+
+# Tool and agent local files
+.opencode/
+PROGRESS.md
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store

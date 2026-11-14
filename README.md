@@ -143,7 +143,3 @@ Bộ test dùng CSDL tạm (biến môi trường `AEGISWEB_DB`) và không tạ
 - **Chỉ chạy cục bộ:** giao diện chỉ lắng nghe trên `127.0.0.1`. Đây là công cụ cá nhân, không phải dịch vụ web.
 
 ---
-
-## 7. Giấy phép
-
-[Chưa chọn giấy phép. Điền tên giấy phép (ví dụ MIT) và thêm file `LICENSE` vào thư mục gốc.]

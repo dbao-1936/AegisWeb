@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisWeb - Web Security Scanner & Metasploit Advisory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- R5-4: Lucide SRI verified (SHA-384 of lucide@0.303.0/dist/umd/lucide.min.js, 299448 bytes) -->
+  <script src="https://unpkg.com/lucide@0.303.0/dist/umd/lucide.min.js" integrity="sha384-pY8S7S88bcPs0ay1Py8l4aiJBx8KMxT6C5+1NZzseLPzZF0WCYGVCI3aYfzRiucv" crossorigin="anonymous"></script>
+  
+  <!-- R5-3: Chart.js SRI verified (SHA-384 of chart.js@4.4.1/dist/chart.umd.min.js, 205399 bytes) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              900: '#0b0f19',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151',
+              accent: '#06b6d4',
+              neon: '#10b981',
+              alert: '#ef4444',
+              warning: '#f59e0b',
+              purple: '#8b5cf6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(6, 182, 212, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.8); }
+    }
+    .glow-active { animation: pulse-glow 2s infinite; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #374151; }
+  </style>
+</head>
+<body class="bg-cyber-900 text-slate-200 min-h-screen flex flex-col font-sans antialiased">
+
+  <header class="border-b border-cyber-700 bg-cyber-800/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            AegisWeb <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">Scanner & Advisory</span>
+          </h1>
+          <p class="text-xs text-slate-400">Automated Web Security Audit & Metasploit Pentest Verification Engine</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          Non-Destructive Safe Mode Active
+        </span>
+        <button id="btn-show-history" class="text-xs flex items-center gap-1.5 bg-cyber-700 hover:bg-cyber-600 text-slate-200 px-3 py-1.5 rounded-lg border border-cyber-600 transition">
+          <i data-lucide="history" class="w-4 h-4"></i> Lịch sử Scan
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-8">
+
+    <!-- Scan Input -->
+    <section class="bg-cyber-800 border border-cyber-700 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <label for="target-url" class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+            <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i> Mục tiêu kiểm tra an toàn:
+          </label>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span>Mẫu:</span>
+            <button onclick="setSample('https://example.com')" class="underline hover:text-cyan-400">example.com</button>
+            <span>•</span>
+            <button onclick="setSample('https://scanme.nmap.org')" class="underline hover:text-cyan-400">scanme.nmap.org</button>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="link" class="w-5 h-5"></i>
+            </div>
+            <input type="text" id="target-url" placeholder="https://your-target-domain.com" value="https://example.com"
+              class="w-full pl-12 pr-4 py-3.5 bg-cyber-900 border border-cyber-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl text-white placeholder-slate-500 font-mono text-sm transition outline-none" />
+          </div>
+          <button id="btn-scan" onclick="startScan()" class="px-8 py-3.5 bg-gradient-to-r from-cyan-600 hover:from-cyan-500 to-emerald-600 hover:to-emerald-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/30 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i data-lucide="radar" class="w-5 h-5"></i><span>Bắt đầu Quét An Toàn</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-400">
+          <label class="flex items-center gap-2 cursor-pointer hover:text-slate-200"><input type="checkbox" id="opt-headers" checked class="rounded border-cyber-600 bg-cyber-900 text-cyan-500 focus:ring-0"><span>Kiểm tra Headers, CORS</span></label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-slate-200"><input type="checkbox" id="opt-ssl" checked class="rounded border-cyber-600 bg-cyber-900 text-cyan-500 focus:ring-0"><span>Phân tích SSL/TLS</span></label>
+          <label class="flex items-center gap-2 cursor-pointer hover:text-slate-200"><input type="checkbox" id="opt-recon" checked class="rounded border-cyber-600 bg-cyber-900 text-cyan-500 focus:ring-0"><span>Thăm dò an toàn</span></label>
+          <span class="text-slate-500">|</span>
+          <span class="text-cyan-400 flex items-center gap-1"><i data-lucide="cpu" class="w-3.5 h-3.5"></i> Tự động map Metasploit</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress / Error -->
+    <div id="scan-progress" class="hidden bg-cyber-800 border border-cyan-500/30 rounded-2xl p-8 text-center space-y-4 glow-active">
+      <div class="inline-flex p-4 rounded-full bg-cyan-950/80 border border-cyan-700/50 text-cyan-400"><i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i></div>
+      <div>
+        <h3 class="text-lg font-semibold text-white">Đang thực hiện phân tích an toàn...</h3>
+        <p id="progress-status-text" class="text-xs text-slate-400 mt-1">Đang kết nối...</p>
+      </div>
+      <div class="w-full max-w-md mx-auto bg-cyber-900 h-2 rounded-full overflow-hidden border border-cyber-700">
+        <div id="progress-bar-fill" class="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full w-1/3 transition-all duration-300"></div>
+      </div>
+    </div>
+    <div id="scan-error" class="hidden bg-red-950/40 border border-red-800 text-red-200 rounded-xl p-4 flex items-start gap-3">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400 shrink-0 mt-0.5"></i>
+      <div><h4 class="font-semibold text-sm text-red-300">Lỗi</h4><p id="error-message" class="text-xs text-red-400/90 mt-0.5"></p></div>
+    </div>
+
+    <!-- Recon Panel -->
+    <section class="bg-cyber-800 border border-indigo-900/50 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+      <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="p-2 rounded-xl bg-indigo-950 border border-indigo-800 text-indigo-400"><i data-lucide="network" class="w-5 h-5"></i></span>
+          <div>
+            <h2 class="font-bold text-white text-sm flex items-center gap-2">Subdomain Intelligence <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">PASSIVE RECON</span></h2>
+            <p class="text-xs text-slate-400">Khám phá thụ động • Takeover • DNS/Email Security</p>
+          </div>
+        </div>
+        <button id="btn-toggle-recon-panel" onclick="toggleReconPanel()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 border border-indigo-800 rounded-lg px-3 py-1.5 bg-indigo-950/40 transition">
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform" id="recon-panel-chevron"></i><span id="recon-panel-label">Mở rộng</span>
+        </button>
+      </div>
+
+      <div id="recon-panel-body" class="hidden space-y-4">
+        <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-4 flex items-start gap-3">
+          <i data-lucide="alert-octagon" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+          <div class="text-xs text-amber-200/90 leading-relaxed space-y-1">
+            <p class="font-bold text-amber-300">⚠️ Xác nhận Phạm vi Kiểm thử</p>
+            <p>Bạn phải xác nhận rằng <strong>bạn có quyền kiểm thử hợp pháp</strong> đối với domain và các subdomain liên quan trước khi tiếp tục.</p>
+            <p class="text-[11px] text-amber-400/80 italic mt-1 font-mono">Lưu ý: Xác nhận này được ghi vào nhật ký kiểm toán, không thay thế hợp đồng ủy quyền.</p>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+          <div class="flex-1">
+            <label class="text-xs text-slate-400 mb-1 block">Domain:</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500"><i data-lucide="at-sign" class="w-4 h-4"></i></div>
+              <input type="text" id="recon-domain" placeholder="example.com" class="w-full pl-10 pr-4 py-3 bg-cyber-900 border border-cyber-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-white placeholder-slate-500 font-mono text-sm transition outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-amber-300 border border-amber-800/60 bg-amber-950/30 px-3 py-2 rounded-lg hover:bg-amber-950/60 transition" title="Tôi xác nhận có quyền kiểm thử hợp pháp.">
+              <input type="checkbox" id="recon-consent" class="rounded border-amber-700 bg-cyber-900 text-amber-500 focus:ring-0">
+              <span>Tôi có quyền kiểm thử</span>
+            </label>
+            <button id="btn-recon" onclick="startRecon()" class="px-5 py-3 bg-gradient-to-r from-indigo-600 hover:from-indigo-500 to-violet-600 hover:to-violet-500 text-white font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+              <i data-lucide="scan-line" class="w-4 h-4"></i><span>Khám phá</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="recon-progress" class="hidden text-center py-6 space-y-3">
+        <div class="inline-flex p-3 rounded-full bg-indigo-950/80 border border-indigo-700/50 text-indigo-400"><i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i></div>
+        <div><p class="text-sm text-white font-semibold">Đang khám phá...</p><p id="recon-status-text" class="text-xs text-slate-400 mt-1">Truy vấn...</p></div>
+      </div>
+
+      <div id="recon-summary-bar" class="hidden mt-4 bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs">
+          <div><div id="recon-count-discovered" class="text-2xl font-bold text-indigo-400">0</div><div class="text-slate-500 mt-0.5">Tìm thấy</div></div>
+          <div><div id="recon-count-alive" class="text-2xl font-bold text-emerald-400">0</div><div class="text-slate-500 mt-0.5">Hoạt động</div></div>
+          <div><div id="recon-count-takeover" class="text-2xl font-bold text-red-400">0</div><div class="text-slate-500 mt-0.5">Takeover</div></div>
+          <div><div id="recon-count-dns" class="text-2xl font-bold text-amber-400">0</div><div class="text-slate-500 mt-0.5">DNS/Email</div></div>
+        </div>
+        <div id="wildcard-warning" class="hidden mt-3 bg-yellow-950/30 border border-yellow-700/40 rounded-lg p-3 text-xs text-yellow-300 flex items-start gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-400 shrink-0"></i><span id="wildcard-warning-text"></span></div>
+        <div id="crtsh-warning" class="hidden mt-3 bg-amber-950/40 border border-amber-700/50 rounded-lg p-3 text-xs text-amber-300 flex items-start gap-2"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i><span id="crtsh-warning-text"></span></div>
+      </div>
+
+      <div id="recon-tabs-area" class="hidden mt-4">
+        <div class="border-b border-cyber-700 flex flex-wrap gap-1 text-xs font-medium mb-4">
+          <button onclick="switchReconTab('rtab-subdomains')" id="btn-rtab-subdomains" class="recon-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-indigo-500 text-indigo-400 bg-cyber-800 flex items-center gap-1.5"><i data-lucide="list" class="w-3.5 h-3.5"></i> Danh sách</button>
+          <button onclick="switchReconTab('rtab-takeover')" id="btn-rtab-takeover" class="recon-tab-btn px-3 py-2 rounded-t-lg text-slate-400 hover:text-slate-200 flex items-center gap-1.5"><i data-lucide="shield-x" class="w-3.5 h-3.5"></i> Takeover <span id="badge-rtab-takeover" class="px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-900 rounded-full text-[10px]">0</span></button>
+          <button onclick="switchReconTab('rtab-dns')" id="btn-rtab-dns" class="recon-tab-btn px-3 py-2 rounded-t-lg text-slate-400 hover:text-slate-200 flex items-center gap-1.5"><i data-lucide="server" class="w-3.5 h-3.5"></i> DNS & Email <span id="badge-rtab-dns" class="px-1.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-900 rounded-full text-[10px]">0</span></button>
+        </div>
+
+        <div id="rtab-subdomains" class="recon-tab-content space-y-2">
+          <div id="recon-diff-banner" class="hidden bg-indigo-950/40 border border-indigo-700/50 rounded-xl p-3 text-xs mb-3"></div>
+          <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2 mb-2 pb-2 border-b border-cyber-700/60">
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-white select-none"><input type="checkbox" id="recon-select-all" onchange="toggleSelectAllSubdomains(this.checked)" class="rounded border-cyber-600 bg-cyber-900 text-indigo-500 focus:ring-0"><span class="font-medium">Chọn tất cả</span></label>
+              <span id="recon-selected-count" class="text-indigo-400 font-mono">(0 đã chọn)</span>
+            </div>
+            <button id="btn-batch-scan" onclick="startBatchScan()" disabled class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium flex items-center gap-1.5 transition"><i data-lucide="zap" class="w-3.5 h-3.5"></i> Quét hàng loạt</button>
+          </div>
+          <div id="batch-scan-progress" class="hidden bg-cyber-900/90 border border-indigo-800 rounded-xl p-3 space-y-2 text-xs">
+            <div class="flex items-center justify-between"><span id="batch-progress-text" class="text-indigo-300 font-medium">Đang quét...</span><span id="batch-progress-percent" class="font-mono text-slate-400">0%</span></div>
+            <div class="w-full bg-cyber-800 h-2 rounded-full overflow-hidden border border-cyber-700"><div id="batch-progress-bar-fill" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full w-0 transition-all duration-300"></div></div>
+          </div>
+          <div id="subdomain-list-container" class="space-y-1.5 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+        <div id="rtab-takeover" class="recon-tab-content hidden space-y-3"><div id="takeover-list-container" class="space-y-3"></div></div>
+        <div id="rtab-dns" class="recon-tab-content hidden space-y-3"><div id="dns-list-container" class="space-y-3"></div></div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <div id="results-container" class="hidden space-y-8">
+      <div id="scan-diff-banner" class="hidden bg-cyber-800 border rounded-2xl p-5 shadow-lg transition"></div>
+
+      <section class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div class="md:col-span-4 bg-cyber-800 border border-cyber-700 rounded-2xl p-6 flex items-center justify-between relative overflow-hidden shadow-lg">
+          <div class="space-y-2">
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-400">Đánh giá An Toàn</span>
+            <div class="flex items-baseline gap-2"><span id="score-value" class="text-5xl font-black tracking-tight text-white">88</span><span class="text-slate-500 text-lg">/100</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs text-slate-400">Xếp hạng:</span><span id="grade-badge" class="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">Grade B</span></div>
+            <div class="flex items-center gap-1 pt-1 text-[10px] text-slate-400"><i data-lucide="info" class="w-3 h-3 text-cyan-400"></i><span>Heuristic (OWASP)</span></div>
+          </div>
+          <div class="w-24 h-24 relative flex items-center justify-center"><canvas id="scoreGaugeChart"></canvas><span id="gauge-center-text" class="absolute text-sm font-bold text-white">88%</span></div>
+        </div>
+
+        <div class="md:col-span-8 grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="bg-cyber-800 border border-red-900/40 rounded-xl p-4 flex flex-col justify-between"><span class="text-xs text-red-400 flex items-center gap-1"><i data-lucide="flame" class="w-3.5 h-3.5"></i> Critical</span><span id="count-critical" class="text-2xl font-bold text-red-400 mt-2">0</span><span class="text-[10px] text-slate-500">Nghiêm trọng</span></div>
+          <div class="bg-cyber-800 border border-orange-900/40 rounded-xl p-4 flex flex-col justify-between"><span class="text-xs text-orange-400 flex items-center gap-1"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> High</span><span id="count-high" class="text-2xl font-bold text-orange-400 mt-2">0</span><span class="text-[10px] text-slate-500">Cao</span></div>
+          <div class="bg-cyber-800 border border-yellow-900/40 rounded-xl p-4 flex flex-col justify-between"><span class="text-xs text-yellow-400 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Medium</span><span id="count-medium" class="text-2xl font-bold text-yellow-400 mt-2">0</span><span class="text-[10px] text-slate-500">Trung bình</span></div>
+          <div class="bg-cyber-800 border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between"><span class="text-xs text-blue-400 flex items-center gap-1"><i data-lucide="info" class="w-3.5 h-3.5"></i> Low</span><span id="count-low" class="text-2xl font-bold text-blue-400 mt-2">0</span><span class="text-[10px] text-slate-500">Thấp</span></div>
+          <div class="bg-cyber-800 border border-purple-900/50 rounded-xl p-4 flex flex-col justify-between col-span-2 sm:col-span-1 bg-gradient-to-br from-cyber-800 to-purple-950/20"><span class="text-xs text-purple-400 flex items-center gap-1"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> Metasploit</span><span id="count-msf" class="text-2xl font-bold text-purple-400 mt-2">0</span><span class="text-[10px] text-purple-300/80">Đề xuất</span></div>
+        </div>
+      </section>
+
+      <section class="bg-cyber-800/60 border border-cyber-700 rounded-xl px-5 py-3 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-4">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2"><span class="text-slate-500">Host:</span><span id="meta-host" class="font-mono text-slate-200 font-medium">-</span></div>
+          <div class="flex items-center gap-2"><span class="text-slate-500">IP:</span><span id="meta-ip" class="font-mono text-slate-200">-</span></div>
+          <div class="flex items-center gap-2"><span class="text-slate-500">Thời gian:</span><span id="meta-duration" class="text-slate-200">-</span></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportJSON()" class="px-3 py-1 bg-cyber-700 hover:bg-cyber-600 text-slate-200 rounded border border-cyber-600 flex items-center gap-1.5 transition"><i data-lucide="download" class="w-3.5 h-3.5"></i> JSON</button>
+          <button onclick="window.print()" class="px-3 py-1 bg-cyber-700 hover:bg-cyber-600 text-slate-200 rounded border border-cyber-600 flex items-center gap-1.5 transition"><i data-lucide="printer" class="w-3.5 h-3.5"></i> PDF</button>
+        </div>
+      </section>
+
+      <div class="border-b border-cyber-700 flex flex-wrap gap-2 text-sm font-medium">
+        <button onclick="switchTab('tab-msf')" id="btn-tab-msf" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 border-b-2 border-purple-500 text-purple-400 bg-cyber-800 transition"><i data-lucide="terminal" class="w-4 h-4"></i><span>Metasploit</span><span id="badge-tab-msf" class="text-xs px-2 py-0.5 bg-purple-900/80 text-purple-200 rounded-full">0</span></button>
+        <button onclick="switchTab('tab-findings')" id="btn-tab-findings" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 transition"><i data-lucide="alert-octagon" class="w-4 h-4"></i><span>Lỗ hổng</span><span id="badge-tab-findings" class="text-xs px-2 py-0.5 bg-cyber-700 text-slate-300 rounded-full">0</span></button>
+        <button onclick="switchTab('tab-headers')" id="btn-tab-headers" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 transition"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Headers</span></button>
+        <button onclick="switchTab('tab-ssl')" id="btn-tab-ssl" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 transition"><i data-lucide="lock" class="w-4 h-4"></i><span>SSL/TLS</span></button>
+        <button onclick="switchTab('tab-tech')" id="btn-tab-tech" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 transition"><i data-lucide="cpu" class="w-4 h-4"></i><span>Công nghệ</span><span id="badge-tab-tech" class="text-xs px-2 py-0.5 bg-cyber-700 text-slate-300 rounded-full">0</span></button>
+        <button onclick="switchTab('tab-recon')" id="btn-tab-recon" class="tab-btn px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 transition"><i data-lucide="search" class="w-4 h-4"></i><span>Recon</span></button>
+      </div>
+
+      <section id="tab-msf" class="tab-content space-y-4">
+        <div class="bg-purple-950/20 border border-purple-800/40 rounded-xl p-4 flex items-start gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-purple-400 shrink-0 mt-0.5"></i>
+          <div class="text-xs text-purple-200/90 leading-relaxed"><strong>Lưu ý:</strong> Đây là các module gợi ý, ứng dụng không chạy mã tấn công.</div>
+        </div>
+        <!-- R4-8: Toggle Intrusive -->
+        <div class="flex items-center gap-2 px-1">
+          <input type="checkbox" id="toggle-intrusive-msf" onchange="onToggleIntrusiveMsf()" class="rounded border-cyber-600 bg-cyber-900 text-red-500 focus:ring-0">
+          <label for="toggle-intrusive-msf" class="text-xs text-red-400 cursor-pointer select-none font-medium">Hiện module intrusive (chỉ khi có văn bản cho phép)</label>
+        </div>
+        <div id="msf-list" class="space-y-4"></div>
+      </section>
+
+      <section id="tab-findings" class="tab-content hidden space-y-4">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span class="text-slate-400">Lọc:</span>
+          <button onclick="filterFindings('ALL')" class="finding-filter-btn px-3 py-1 rounded bg-cyber-700 text-white font-medium">Tất cả</button>
+          <button onclick="filterFindings('CRITICAL')" class="finding-filter-btn px-3 py-1 rounded bg-cyber-800 text-red-400 hover:bg-cyber-700">Critical</button>
+          <button onclick="filterFindings('HIGH')" class="finding-filter-btn px-3 py-1 rounded bg-cyber-800 text-orange-400 hover:bg-cyber-700">High</button>
+          <button onclick="filterFindings('MEDIUM')" class="finding-filter-btn px-3 py-1 rounded bg-cyber-800 text-yellow-400 hover:bg-cyber-700">Medium</button>
+          <button onclick="filterFindings('LOW')" class="finding-filter-btn px-3 py-1 rounded bg-cyber-800 text-blue-400 hover:bg-cyber-700">Low</button>
+        </div>
+        <div id="findings-list" class="space-y-4"></div>
+      </section>
+
+      <section id="tab-headers" class="tab-content hidden space-y-4">
+        <div class="bg-cyber-800 border border-cyber-700 rounded-xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-cyber-700"><h3 class="font-semibold text-sm text-white">Security Headers (OWASP)</h3></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-cyber-900/60 text-slate-400 uppercase font-semibold"><tr><th class="px-6 py-3">Header</th><th class="px-6 py-3">Trạng thái</th><th class="px-6 py-3">Giá trị</th><th class="px-6 py-3">Khuyến nghị</th></tr></thead>
+              <tbody id="headers-table-body" class="divide-y divide-cyber-700"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-ssl" class="tab-content hidden space-y-4">
+        <div id="ssl-details-container" class="bg-cyber-800 border border-cyber-700 rounded-2xl p-6 space-y-6"></div>
+      </section>
+
+      <section id="tab-tech" class="tab-content hidden space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="tech-cards-container"></div>
+      </section>
+
+      <section id="tab-recon" class="tab-content hidden space-y-4">
+        <div class="bg-cyber-800 border border-cyber-700 rounded-xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-cyber-700"><h3 class="font-semibold text-sm text-white">Thăm dò Endpoint</h3></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-cyber-900/60 text-slate-400 uppercase font-semibold"><tr><th class="px-6 py-3">Mục tiêu</th><th class="px-6 py-3">Đường dẫn</th><th class="px-6 py-3">Status</th><th class="px-6 py-3">Truy cập</th><th class="px-6 py-3">Nội dung</th></tr></thead>
+              <tbody id="recon-table-body" class="divide-y divide-cyber-700"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <div id="history-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end hidden">
+    <div class="w-full max-w-md bg-cyber-800 border-l border-cyber-700 h-full p-6 flex flex-col justify-between shadow-2xl">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-cyber-700 pb-4">
+          <h3 class="font-bold text-white flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-cyan-400"></i> Lịch sử</h3>
+          <button id="btn-close-history" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div id="history-items-list" class="space-y-3 overflow-y-auto max-h-[75vh]"></div>
+      </div>
+      <div class="pt-4 border-t border-cyber-700 text-xs text-slate-500 text-center">Dữ liệu cục bộ</div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-cyber-800 border border-cyan-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+    <i data-lucide="check" class="w-4 h-4 text-cyan-400"></i><span id="toast-message" class="text-xs font-medium">Đã sao chép!</span>
+  </div>
+
+  <footer class="border-t border-cyber-700/60 py-6 text-center text-xs text-slate-500">
+    <p>AegisWeb Scanner • Non-Destructive Web Security Audit</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/recon.js"></script>
+  <script>
+    document.getElementById('target-url').addEventListener('change', function() {
+      autofillReconDomain(this.value);
+    });
+  </script>
+</body>
+</html>

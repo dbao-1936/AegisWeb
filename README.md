@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/34850436/README.md)
 # AegisWeb v1.2 - Công cụ quét bảo mật web và thu thập subdomain
 
 AegisWeb là ứng dụng Python chạy cục bộ (Web UI trên `http://127.0.0.1:8000`), dùng để **kiểm tra cấu hình bảo mật của website** (defensive security audit), **thu thập và kiểm tra subdomain theo cách thụ động**, và **gợi ý module Metasploit tương ứng** để chuyên gia kiểm thử xác minh thủ công.
